@@ -3,7 +3,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use scraper::{Html, Selector};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::fs;
 use std::fs::File;
 use std::io::{Read, Write};
@@ -11,7 +12,7 @@ use std::path::{Path, PathBuf};
 use tauri::Manager;
 use zip::ZipArchive;
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 struct Message {
     sender: String,
     timestamp: String,
@@ -21,6 +22,23 @@ struct Message {
 
 #[tauri::command]
 fn parse_zip(zip_path: String) -> Result<Vec<Message>, String> {
+    let zip_path_obj = Path::new(&zip_path);
+    let mut hasher = Sha256::new();
+    hasher.update(zip_path.as_bytes());
+    let hash = format!("{:x}", hasher.finalize());
+    let cache_path = dirs::cache_dir()
+        .ok_or("Failed to get cache directory")?
+        .join("archivist")
+        .join(format!("{}.json", hash));
+
+    if cache_path.exists() {
+        let cached_data = fs::read_to_string(&cache_path).map_err(|e| e.to_string())?;
+        let messages: Vec<Message> =
+            serde_json::from_str(&cached_data).map_err(|e| e.to_string())?;
+        println!("✅ Loaded {} messages from cache", messages.len());
+        return Ok(messages);
+    }
+
     let zip_file = File::open(&zip_path).map_err(|e| format!("Failed to open zip: {}", e))?;
     let mut archive =
         ZipArchive::new(zip_file).map_err(|e| format!("Failed to read zip: {}", e))?;
@@ -95,16 +113,27 @@ fn parse_zip(zip_path: String) -> Result<Vec<Message>, String> {
                     .map(|e| e.text().collect::<String>())
                     .unwrap_or_default();
 
-                messages.push(Message {
-                    sender,
-                    timestamp: timestamp_raw,
-                    content,
-                    conversation: conv_name.clone(),
-                });
+                if !content.trim().is_empty() {
+                    messages.push(Message {
+                        sender,
+                        timestamp: timestamp_raw,
+                        content,
+                        conversation: conv_name.clone(),
+                    });
+                }
             }
         }
     }
+
     println!("✅ Total messages parsed: {}", messages.len());
+
+    if let Some(parent) = cache_path.parent() {
+        fs::create_dir_all(parent).ok();
+    }
+    let serialized = serde_json::to_string(&messages).map_err(|e| e.to_string())?;
+    fs::write(&cache_path, serialized).ok();
+    println!("💾 Cached messages to {:?}", cache_path);
+
     Ok(messages)
 }
 
