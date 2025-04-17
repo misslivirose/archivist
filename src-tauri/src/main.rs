@@ -137,10 +137,22 @@ fn parse_zip(zip_path: String) -> Result<Vec<Message>, String> {
     Ok(messages)
 }
 
+#[tauri::command]
+fn clear_cache() -> Result<(), String> {
+    let cache_dir = dirs::cache_dir()
+        .ok_or("Failed to get cache directory")?
+        .join("archivist");
+    if cache_dir.exists() {
+        fs::remove_dir_all(&cache_dir).map_err(|e| format!("Failed to remove cache: {}", e))?;
+        println!("🧹 Cleared cache at {:?}", cache_dir);
+    }
+    Ok(())
+}
+
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![parse_zip])
+        .invoke_handler(tauri::generate_handler![parse_zip, clear_cache])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

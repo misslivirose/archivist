@@ -16,6 +16,27 @@ export default function App() {
   const [agentResponse, setAgentResponse] = useState("");
   const [agentLoading, setAgentLoading] = useState(false);
 
+  const handleClearCache = async () => {
+    const userConfirmed = confirm(
+      "Are you sure you want to clear the cached data?",
+      {
+        title: "Clear Cache",
+        okLabel: "Yes",
+        cancelLabel: "No",
+      },
+    );
+
+    if (userConfirmed) {
+      try {
+        await invoke("clear_cache");
+        alert("Cache cleared successfully.");
+      } catch (error) {
+        console.error("Failed to clear cache:", error);
+        alert("Failed to clear cache.");
+      }
+    }
+  };
+
   const handleFilePicker = async () => {
     try {
       const selected = await open({
@@ -153,6 +174,12 @@ export default function App() {
               >
                 Select Facebook ZIP Archive
               </button>
+              <button
+                onClick={handleClearCache}
+                className="px-5 py-2 font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition"
+              >
+                Clear Cache
+              </button>
               <input
                 type="text"
                 placeholder="Search messages..."
@@ -200,9 +227,9 @@ export default function App() {
                           <td className="px-4 py-2 text-gray-500 whitespace-nowrap">
                             {msg.timestamp}
                           </td>
-                          {/* <td className="px-4 py-2 text-gray-500 whitespace-nowrap">
+                          <td className="px-4 py-2 text-gray-500 whitespace-nowrap">
                             {msg.conversation}
-                          </td> */}
+                          </td>
                           <td className="px-4 py-2 text-gray-700 truncate">
                             {msg.content}
                           </td>
