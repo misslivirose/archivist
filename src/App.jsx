@@ -109,9 +109,9 @@ export default function App() {
                       Sender
                     </th>
                     <th className="px-4 py-2 whitespace-nowrap">Timestamp</th>
-                    <th className="px-4 py-2 whitespace-nowrap">
+                    {/* <th className="px-4 py-2 whitespace-nowrap">
                       Conversation
-                    </th>
+                    </th> */}
                     <th className="px-4 py-2 whitespace-nowrap">Message</th>
                   </tr>
                 </thead>
@@ -124,9 +124,9 @@ export default function App() {
                       <td className="px-4 py-2 text-gray-500 whitespace-nowrap">
                         {msg.timestamp}
                       </td>
-                      <td className="px-4 py-2 text-gray-500 whitespace-nowrap">
+                      {/* <td className="px-4 py-2 text-gray-500 whitespace-nowrap">
                         {msg.conversation}
-                      </td>
+                      </td> */}
                       <td className="px-4 py-2 text-gray-700">{msg.content}</td>
                     </tr>
                   ))}
