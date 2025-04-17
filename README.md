@@ -1,7 +1,5 @@
-# Tauri + React
+# [WIP] Archivist
 
-This template should help get you started developing with Tauri and React in Vite.
+A tool for analyzing your past via Facebook archives. Work in progress, but here's the general vibe we're going for: 
 
-## Recommended IDE Setup
-
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+![image](https://github.com/user-attachments/assets/48339450-6753-44df-ae17-78c864febd79)
