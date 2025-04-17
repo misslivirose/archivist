@@ -15,6 +15,12 @@ export default function App() {
   const [agentInput, setAgentInput] = useState("");
   const [agentResponse, setAgentResponse] = useState("");
   const [agentLoading, setAgentLoading] = useState(false);
+  const tabs = ["messages", "agent", "summary"];
+  const [summaries, setSummaries] = useState({});
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+  };
 
   const handleClearCache = async () => {
     const userConfirmed = confirm(
@@ -83,6 +89,79 @@ export default function App() {
     }
   };
 
+  const generateNarrative = async (year, yearMessages) => {
+    const context = yearMessages
+      .map((m) => `[${m.timestamp}] ${m.sender}: ${m.content}`)
+      .join("");
+    const prompt = `Generate a warm, reflective paragraph summarizing the tone, themes, and emotional arc of these messages from the year ${year}. Speak with voice, tone, and gentle storytelling.${context}`;
+    try {
+      const response = await fetch("http://localhost:11434/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "qwen2.5",
+          prompt,
+          stream: false,
+        }),
+      });
+      const data = await response.json();
+      return data.response;
+    } catch (err) {
+      return "(Unable to generate summary for this year.)";
+    }
+  };
+
+  React.useEffect(() => {
+    const groups = {};
+    for (const msg of messages) {
+      if (!msg.timestamp) continue;
+      const year = new Date(msg.timestamp).getFullYear();
+      if (!groups[year]) groups[year] = [];
+      groups[year].push(msg);
+    }
+    const sortedYears = Object.keys(groups).sort();
+
+    const generateAllSummaries = async () => {
+      const entries = await Promise.all(
+        sortedYears.map(async (year) => {
+          const summary = await generateNarrative(year, groups[year]);
+          return [year, summary];
+        }),
+      );
+      setSummaries(Object.fromEntries(entries));
+    };
+
+    if (messages.length > 0) {
+      generateAllSummaries();
+    }
+  }, [messages]);
+
+  const renderSummary = () => {
+    const groups = {};
+    for (const msg of messages) {
+      const year = new Date(msg.timestamp).getFullYear();
+      if (!groups[year]) groups[year] = [];
+      groups[year].push(msg);
+    }
+    const sortedYears = Object.keys(groups).sort();
+
+    return (
+      <div className="space-y-6">
+        <h2 className="text-xl font-bold text-gray-700">
+          Year-by-Year Summary
+        </h2>
+        {sortedYears.map((year) => (
+          <div key={year} className="border-l-4 border-blue-200 pl-4">
+            <h3 className="text-lg font-semibold text-blue-700">{year}</h3>
+            <p className="text-sm italic text-gray-500 mt-1 mb-2">
+              {summaries[year] || "Generating summary..."}
+            </p>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   const filtered = messages.filter(
     (m) =>
       m.content.toLowerCase().includes(search.toLowerCase()) ||
@@ -143,26 +222,19 @@ export default function App() {
     <div className="p-6 bg-gradient-to-br from-gray-100 to-white min-h-screen text-gray-800">
       <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-lg p-8 space-y-6">
         <div className="flex space-x-4 border-b pb-2">
-          <button
-            onClick={() => setActiveTab("messages")}
-            className={`pb-1 border-b-2 ${
-              activeTab === "messages"
-                ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-blue-500"
-            } font-medium`}
-          >
-            Messages
-          </button>
-          <button
-            onClick={() => setActiveTab("agent")}
-            className={`pb-1 border-b-2 ${
-              activeTab === "agent"
-                ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-blue-500"
-            } font-medium`}
-          >
-            AI Agent
-          </button>
+          {tabs.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => handleTabChange(tab)}
+              className={`pb-1 border-b-2 ${
+                activeTab === tab
+                  ? "border-blue-600 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-blue-500"
+              } font-medium capitalize`}
+            >
+              {tab}
+            </button>
+          ))}
         </div>
 
         {activeTab === "messages" && (
@@ -289,6 +361,7 @@ export default function App() {
             )}
           </div>
         )}
+        {activeTab === "summary" && renderSummary()}
       </div>
     </div>
   );
