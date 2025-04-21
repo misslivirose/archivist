@@ -7,3 +7,50 @@
 body {
     font-family: "Merriweather", serif;
 }
+
+.notebook-paper {
+    background: repeating-linear-gradient(
+        to bottom,
+        #fefefe,
+        #fefefe 24px,
+        #d3e0ea 25px
+    );
+    border-left: 5px solid #f06292; /* pinkish margin like ruled paper */
+    padding-left: 20px;
+    position: relative;
+}
+
+.notebook-paper::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 48px;
+    width: 2px;
+    background-color: #f06292;
+    opacity: 0.4;
+}
+
+.notebook-table {
+    background: #fff;
+    border-left: 4px solid #f06292; /* red/pink notebook margin */
+    position: relative;
+    padding-left: 16px;
+}
+
+.notebook-table td,
+.notebook-table th {
+    background-color: transparent !important;
+    border: none;
+}
+
+.notebook-table th {
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #6c7a89;
+    background-color: #fdf6e3 !important;
+}
+
+.notebook-table tr:hover td {
+    background-color: #fef9e7 !important;
+}

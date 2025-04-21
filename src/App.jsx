@@ -272,7 +272,7 @@ export default function App() {
             ) : (
               <>
                 <div className="overflow-auto border border-gray-200 rounded-lg shadow-sm max-h-[70vh]">
-                  <table className="min-w-full text-sm text-left table-fixed">
+                  <table className="notebook-table min-w-full text-sm text-left table-fixed">
                     <thead className="bg-blue-50 text-blue-800 uppercase text-xs">
                       <tr>
                         <th
