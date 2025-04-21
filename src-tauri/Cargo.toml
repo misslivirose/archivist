@@ -31,3 +31,6 @@ tauri-plugin-dialog = "2.0.0"
 dirs = "5.0"
 sha2 = "0.10"
 regex = "1.10"
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-cli = "2"

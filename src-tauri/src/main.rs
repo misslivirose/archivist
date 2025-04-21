@@ -10,6 +10,7 @@ use std::fs::File;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use tauri::Manager;
+use tauri_plugin_cli::CliExt;
 use zip::ZipArchive;
 
 #[derive(Serialize, Deserialize)]
@@ -21,7 +22,9 @@ struct Message {
 }
 
 #[tauri::command]
-fn parse_zip(zip_path: String) -> Result<Vec<Message>, String> {
+fn parse_zip(zip_path: String, state: tauri::State<AppState>) -> Result<Vec<Message>, String> {
+    let use_cache = state.use_cache;
+    println!("📦 parse_zip called with use_cache = {}", use_cache);
     let mut hasher = Sha256::new();
     hasher.update(zip_path.as_bytes());
     let hash = format!("{:x}", hasher.finalize());
@@ -185,12 +188,14 @@ fn parse_zip(zip_path: String) -> Result<Vec<Message>, String> {
 
     println!("✅ Total messages parsed: {}", messages.len());
 
-    if let Some(parent) = cache_path.parent() {
-        fs::create_dir_all(parent).ok();
+    if use_cache {
+        if let Some(parent) = cache_path.parent() {
+            fs::create_dir_all(parent).ok();
+        }
+        let serialized = serde_json::to_string(&messages).map_err(|e| e.to_string())?;
+        fs::write(&cache_path, serialized).ok();
+        println!("💾 Cached messages to {:?}", cache_path);
     }
-    let serialized = serde_json::to_string(&messages).map_err(|e| e.to_string())?;
-    fs::write(&cache_path, serialized).ok();
-    println!("💾 Cached messages to {:?}", cache_path);
 
     Ok(messages)
 }
@@ -217,8 +222,30 @@ fn clear_cache() -> Result<(), String> {
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_cli::init())
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![parse_zip, clear_cache])
+        .setup(|app| {
+            // Get CLI matches from the plugin
+            match app.cli().matches() {
+                Ok(matches) => {
+                    // Extract --no-cache flag and invert it
+                    let use_cache = matches
+                        .args
+                        .get("no-cache")
+                        .map(|a| a.occurrences > 0)
+                        .unwrap_or(false);
+                    println!("{:?}", matches);
+                    println!("use_cache = {}", use_cache);
+                    app.manage(AppState { use_cache });
+                }
+                Err(_) => {}
+            };
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+struct AppState {
+    use_cache: bool,
 }

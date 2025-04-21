@@ -9,7 +9,19 @@
     "beforeBuildCommand": "npm run build",
     "frontendDist": "../dist"
   },
-  "plugins": {},
+  "plugins": {
+    "cli": {
+      "description": "Archivist flags",
+      "args": [
+        {
+          "short": "x",
+          "name": "no-cache",
+          "description": "Disable archiving file cache for faster retrieval",
+          "takesValue": false
+        }
+      ]
+    }
+  },
   "app": {
     "windows": [
       {
