@@ -22,7 +22,6 @@ struct Message {
 
 #[tauri::command]
 fn parse_zip(zip_path: String) -> Result<Vec<Message>, String> {
-    let zip_path_obj = Path::new(&zip_path);
     let mut hasher = Sha256::new();
     hasher.update(zip_path.as_bytes());
     let hash = format!("{:x}", hasher.finalize());
@@ -39,9 +38,9 @@ fn parse_zip(zip_path: String) -> Result<Vec<Message>, String> {
         return Ok(messages);
     }
 
-    let zip_file = File::open(&zip_path).map_err(|e| format!("Failed to open zip: {}", e))?;
+    let zip_file = File::open(&zip_path).map_err(|e| format!("⚠️ Failed to open zip: {}", e))?;
     let mut archive =
-        ZipArchive::new(zip_file).map_err(|e| format!("Failed to read zip: {}", e))?;
+        ZipArchive::new(zip_file).map_err(|e| format!("⚠️ Failed to read zip: {}", e))?;
 
     let temp_dir = tempfile::tempdir().map_err(|e| e.to_string())?;
     for i in 0..archive.len() {
@@ -67,7 +66,7 @@ fn parse_zip(zip_path: String) -> Result<Vec<Message>, String> {
     let mut messages: Vec<Message> = vec![];
 
     if !inbox_path.exists() {
-        return Err("Expected inbox path does not exist".to_string());
+        return Err("⚠️ Expected inbox path does not exist".to_string());
     }
 
     for entry in walkdir::WalkDir::new(inbox_path)
@@ -125,6 +124,65 @@ fn parse_zip(zip_path: String) -> Result<Vec<Message>, String> {
         }
     }
 
+    // Parse timeline posts
+    let timeline_path = temp_dir
+        .path()
+        .join("your_facebook_activity/posts/your_posts__check_ins__photos_and_videos_1.html");
+    if timeline_path.exists() {
+        println!("✅ Found timeline path");
+        for entry in walkdir::WalkDir::new(&timeline_path)
+            .into_iter()
+            .filter_map(|e| e.ok())
+        {
+            let path = entry.path();
+            if path.is_file() && path.extension().unwrap_or_default() == "html" {
+                let html = fs::read_to_string(path).map_err(|e| e.to_string())?;
+                let doc = Html::parse_document(&html);
+
+                let status_sel = Selector::parse("div._a6-g").unwrap();
+                let sender_sel = Selector::parse("div._a6-h").unwrap();
+                let content_sel = Selector::parse("div._2pin").unwrap();
+                let time_sel = Selector::parse("div._a72d").unwrap();
+
+                for block in doc.select(&status_sel) {
+                    let sender = block
+                        .select(&sender_sel)
+                        .next()
+                        .map(|e| e.text().collect::<String>())
+                        .unwrap_or_default();
+
+                    let content = block
+                        .select(&content_sel)
+                        .next()
+                        .map(|e| e.text().collect::<String>())
+                        .unwrap_or_default();
+
+                    let timestamp_raw = block
+                        .select(&time_sel)
+                        .next()
+                        .map(|e| e.text().collect::<String>())
+                        .unwrap_or_default();
+
+                    // Extract year from timestamp for "timeline_YYYY"
+                    let year = extract_year(&timestamp_raw).unwrap_or("unknown".to_string());
+                    let conv_name = format!("timeline_{}", year);
+
+                    if !content.trim().is_empty() {
+                        messages.push(Message {
+                            sender,
+                            timestamp: timestamp_raw,
+                            content,
+                            conversation: conv_name,
+                        });
+                    }
+                    println!("Added message from timeline");
+                }
+            }
+        }
+    } else {
+        println!("⚠️ Timeline path not found");
+    }
+
     println!("✅ Total messages parsed: {}", messages.len());
 
     if let Some(parent) = cache_path.parent() {
@@ -135,6 +193,14 @@ fn parse_zip(zip_path: String) -> Result<Vec<Message>, String> {
     println!("💾 Cached messages to {:?}", cache_path);
 
     Ok(messages)
+}
+
+// Helper function to extract the year from a raw timestamp string like "Dec 24, 2008 6:02:29 pm"
+fn extract_year(timestamp: &str) -> Option<String> {
+    let re = regex::Regex::new(r"\b(\d{4})\b").ok()?;
+    re.captures(timestamp)
+        .and_then(|caps| caps.get(1))
+        .map(|m| m.as_str().to_string())
 }
 
 #[tauri::command]
