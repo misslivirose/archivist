@@ -151,9 +151,9 @@ export default function App() {
           Year-by-Year Summary
         </h2>
         {sortedYears.map((year) => (
-          <div key={year} className="border-l-4 border-blue-200 pl-4">
-            <h3 className="text-lg font-semibold text-blue-700">{year}</h3>
-            <p className="text-sm italic text-gray-500 mt-1 mb-2">
+          <div key={year} className="border-l-4 border-amber-200 pl-4">
+            <h3 className="text-xl font-bold text-amber-700">{year}</h3>
+            <p className="italic text-stone-700 mt-1">
               {summaries[year] || "Generating summary..."}
             </p>
           </div>
@@ -219,7 +219,7 @@ export default function App() {
   };
 
   return (
-    <div className="p-6 bg-gradient-to-br from-gray-100 to-white min-h-screen text-gray-800">
+    <div className="p-6 bg-gradient-to-br from-amber-100 to-yellow-50 min-h-screen text-stone-800">
       <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-lg p-8 space-y-6">
         <div className="flex space-x-4 border-b pb-2">
           {tabs.map((tab) => (
@@ -228,8 +228,8 @@ export default function App() {
               onClick={() => handleTabChange(tab)}
               className={`pb-1 border-b-2 ${
                 activeTab === tab
-                  ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-blue-500"
+                  ? "border-amber-500 bg-amber-100 text-amber-700 shadow-inner"
+                  : "border-transparent text-gray-500 hover:text-amber-600 hover:bg-amber-50"
               } font-medium capitalize`}
             >
               {tab}
@@ -244,13 +244,13 @@ export default function App() {
                 onClick={handleFilePicker}
                 className="px-5 py-2 font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition"
               >
-                Select Facebook ZIP Archive
+                💾 Select Facebook ZIP Archive
               </button>
               <button
                 onClick={handleClearCache}
                 className="px-5 py-2 font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition"
               >
-                Clear Cache
+                🗑️ Clear Cache
               </button>
               <input
                 type="text"
