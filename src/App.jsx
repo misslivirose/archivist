@@ -122,13 +122,13 @@ export default function App() {
     const sortedYears = Object.keys(groups).sort();
 
     const generateAllSummaries = async () => {
-      const entries = await Promise.all(
-        sortedYears.map(async (year) => {
-          const summary = await generateNarrative(year, groups[year]);
-          return [year, summary];
-        }),
-      );
-      setSummaries(Object.fromEntries(entries));
+      const newSummaries = {};
+      for (const year of sortedYears) {
+        const summary = await generateNarrative(year, groups[year]);
+        newSummaries[year] = summary;
+        // Update UI after each summary is fetched
+        setSummaries((prev) => ({ ...prev, [year]: summary }));
+      }
     };
 
     if (messages.length > 0) {

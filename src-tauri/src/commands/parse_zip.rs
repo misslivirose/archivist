@@ -163,7 +163,6 @@ pub fn parse_zip(zip_path: String, state: tauri::State<AppState>) -> Result<Vec<
                             conversation: conv_name,
                         });
                     }
-                    println!("Added message from timeline");
                 }
             }
         }

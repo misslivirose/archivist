@@ -1,8 +1,7 @@
 @import "tailwindcss";
-@tailwind utilities;
-
-/* index.css */
 @import url("https://fonts.googleapis.com/css2?family=Merriweather&display=swap");
+
+@tailwind utilities;
 
 body {
     font-family: "Merriweather", serif;
