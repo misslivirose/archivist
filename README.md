@@ -36,6 +36,7 @@ const response = await fetch("http://localhost:11434/api/generate", {
     }),
   });
 ```
+<img width="825" alt="image" src="https://github.com/user-attachments/assets/801be52a-8576-49a2-8c75-5b4d2065cc29" />
 
 Building Archivist:
 
