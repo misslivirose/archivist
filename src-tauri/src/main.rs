@@ -5,7 +5,7 @@ mod commands;
 mod models;
 mod utils;
 
-use commands::{clear_cache, parse_zip};
+use commands::{clear_cache, parse_zip, read_message_cache};
 use models::{AppState, Message};
 use utils::load_config;
 
@@ -19,7 +19,11 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_cli::init())
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![parse_zip, clear_cache])
+        .invoke_handler(tauri::generate_handler![
+            parse_zip,
+            clear_cache,
+            read_message_cache
+        ])
         .setup(|app| {
             let use_cache = true;
             let mut last_cache_path = None;
