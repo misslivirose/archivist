@@ -1,5 +1,7 @@
+use crate::commands::read_cache;
 use crate::models::{AppState, Message};
 use crate::utils::extract_year;
+use crate::utils::{save_config, AppConfig};
 use scraper::{Html, Selector};
 use sha2::{Digest, Sha256};
 use std::fs;
@@ -19,10 +21,12 @@ pub fn parse_zip(zip_path: String, state: tauri::State<AppState>) -> Result<Vec<
         .join(format!("{}.json", hash));
 
     if cache_path.exists() {
-        let cached_data = fs::read_to_string(&cache_path).map_err(|e| e.to_string())?;
-        let messages: Vec<Message> =
-            serde_json::from_str(&cached_data).map_err(|e| e.to_string())?;
-        println!("✅ Loaded {} messages from cache", messages.len());
+        // let cached_data = fs::read_to_string(&cache_path).map_err(|e| e.to_string())?;
+        // let messages: Vec<Message> =
+        //     serde_json::from_str(&cached_data).map_err(|e| e.to_string())?;
+        // println!("✅ Loaded {} messages from cache", messages.len());
+        // return Ok(messages);
+        let messages = read_cache(&cache_path)?;
         return Ok(messages);
     }
 
@@ -178,6 +182,9 @@ pub fn parse_zip(zip_path: String, state: tauri::State<AppState>) -> Result<Vec<
         }
         let serialized = serde_json::to_string(&messages).map_err(|e| e.to_string())?;
         fs::write(&cache_path, serialized).ok();
+        save_config(&AppConfig {
+            last_zip_path: Some(zip_path.clone()),
+        });
         println!("💾 Cached messages to {:?}", cache_path);
     }
 
