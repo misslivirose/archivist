@@ -10,7 +10,7 @@ export default function MessageTable({ messages }) {
             <th className="px-4 py-2">Message</th>
           </tr>
         </thead>
-        <tbody className="divide-y">
+        <tbody className="divide-y divide-dashed divide-gray-300">
           {messages.map((msg, idx) => (
             <tr key={idx} className="hover:bg-amber-50 transition">
               <td className="px-4 py-2 font-medium text-gray-700 truncate">
