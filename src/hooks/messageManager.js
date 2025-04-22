@@ -1,16 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { invoke } from "@tauri-apps/api/core";
 
 export function useMessages(generateNarrative) {
   const [messages, setMessages] = useState([]);
   const [summaries, setSummaries] = useState({});
-  const years = Array.from(
-    new Set(messages.map((m) => new Date(m.timestamp).getFullYear())),
-  ).sort();
-  const senders = Array.from(new Set(messages.map((m) => m.sender))).sort();
-  const conversations = Array.from(
-    new Set(messages.map((m) => m.conversation)),
-  ).sort();
 
   useEffect(() => {
     async function loadCachedMessages() {
@@ -23,11 +16,20 @@ export function useMessages(generateNarrative) {
         console.error("Failed to load cached messages:", error);
       }
     }
-
     loadCachedMessages();
   }, []);
 
-  useEffect(() => {
+  const groupedByYear = useMemo(() => {
+    const groups = {};
+    for (const msg of messages) {
+      const year = new Date(msg.timestamp).getFullYear();
+      if (!groups[year]) groups[year] = [];
+      groups[year].push(msg);
+    }
+    return groups;
+  }, [messages]);
+
+  const generateSummaries = async () => {
     const groups = {};
     for (const msg of messages) {
       if (!msg.timestamp) continue;
@@ -38,17 +40,15 @@ export function useMessages(generateNarrative) {
 
     const sortedYears = Object.keys(groups).sort();
 
-    const generateAllSummaries = async () => {
-      for (const year of sortedYears) {
-        const summary = await generateNarrative(year, groups[year]);
-        setSummaries((prev) => ({ ...prev, [year]: summary }));
-      }
-    };
-
-    if (messages.length > 0) {
-      generateAllSummaries();
+    for (const year of sortedYears) {
+      console.log("Generating summary for year" + year);
+      const summary = await generateNarrative(year, groups[year]);
+      setSummaries((prev) => {
+        const updated = { ...prev, [year]: summary };
+        return updated;
+      });
     }
-  }, [messages, generateNarrative]);
+  };
 
-  return { messages, setMessages, summaries };
+  return { messages, setMessages, summaries, generateSummaries, groupedByYear };
 }

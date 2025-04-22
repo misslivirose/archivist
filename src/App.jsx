@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 import { useMessages } from "./hooks/messageManager";
@@ -11,7 +11,6 @@ import Agent from "./components/Agent";
 import Summary from "./components/Summary";
 import "./styles/index.css";
 
-const PAGE_SIZE = 100;
 const tabs = ["messages", "agent", "summary"];
 
 export default function App() {
@@ -19,10 +18,13 @@ export default function App() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
   const [activeTab, setActiveTab] = useState("messages");
   const [filters, setFilters] = useState({ year: "", sender: "" });
+  const [summariesGenerated, setSummariesGenerated] = useState(false);
 
-  const { messages, setMessages, summaries } = useMessages(generateNarrative);
+  const { messages, setMessages, summaries, groupedByYear, generateSummaries } =
+    useMessages(generateNarrative);
 
   const years = useMemo(() => {
     return Array.from(
@@ -51,6 +53,7 @@ export default function App() {
         const result = await invoke("parse_zip", { zipPath: selected });
         setMessages(result);
         setCurrentPage(1);
+        generateSummaries();
       }
     } catch (error) {
       console.error("Error processing ZIP:", error);
@@ -88,9 +91,21 @@ export default function App() {
   }, [messages, search, filters]);
 
   const paginated = filtered.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE,
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
   );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters, search, pageSize]);
+
+  useEffect(() => {
+    if (activeTab === "summary" && !summariesGenerated) {
+      console.log("⚡ Triggering summary generation...");
+      generateSummaries();
+      setSummariesGenerated(true);
+    }
+  }, [activeTab, summariesGenerated, generateSummaries]);
 
   return (
     <div className="p-6 bg-gradient-to-br from-amber-100 to-yellow-50 min-h-screen text-stone-800">
@@ -121,8 +136,11 @@ export default function App() {
                 <MessageTable messages={paginated} />
                 <Pagination
                   currentPage={currentPage}
-                  totalPages={Math.ceil(filtered.length / PAGE_SIZE)}
+                  totalPages={Math.ceil(filtered.length / pageSize)}
+                  totalItems={filtered.length}
+                  pageSize={pageSize}
                   setCurrentPage={setCurrentPage}
+                  setPageSize={setPageSize}
                 />
               </>
             )}
@@ -133,11 +151,11 @@ export default function App() {
             messages={messages}
             search={search}
             currentPage={currentPage}
-            PAGE_SIZE={PAGE_SIZE}
+            pageSize={pageSize}
           />
         )}
         {activeTab === "summary" && (
-          <Summary messages={messages} summaries={summaries} />
+          <Summary summaries={summaries} groupedByYear={groupedByYear} />
         )}
       </div>
     </div>
