@@ -53,3 +53,27 @@ body {
 .notebook-table tr:hover td {
     background-color: #fef9e7 !important;
 }
+
+select {
+    appearance: none;
+    background-color: #fff;
+    border: 1px solid #e5e7eb;
+    padding: 0.5rem 2.5rem 0.5rem 1rem;
+    font-size: 0.875rem;
+    color: #111827;
+    border-radius: 0.5rem;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" fill="%236b7280" viewBox="0 0 20 20"><path d="M5.23 7.21a.75.75 0 011.06.02L10 11.296l3.71-4.065a.75.75 0 111.08 1.04l-4.25 4.667a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+    cursor: pointer;
+    transition:
+        border 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+    outline: none;
+}
