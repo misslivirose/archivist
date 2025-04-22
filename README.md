@@ -1,6 +1,6 @@
 # [WIP] Archivist
 
-Archivist is a tool for analyzing your past via Facebook archives. Work in progress. Upload a .zip folder archive from Facebook, andAarchivist will display every message you've ever sent or received. What could possibly go wrong with this information?
+Archivist is a tool for analyzing your past via Facebook archives. Work in progress. Upload a .zip folder archive from Facebook, and Archivist will display every message you've ever sent or received. What could possibly go wrong with this information?
 
 <img width="1487" alt="image" src="https://github.com/user-attachments/assets/c8039e23-7168-4a74-8be6-2eadedd4c628" />
 
