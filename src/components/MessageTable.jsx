@@ -1,24 +1,28 @@
 export default function MessageTable({ messages }) {
   return (
-    <div className="overflow-auto border border-gray-200 rounded-lg shadow-sm max-h-[70vh]">
-      <table className="min-w-full text-sm text-left table-fixed">
-        <thead className="bg-blue-50 text-blue-800 uppercase text-xs">
+    <div className="notebook-paper overflow-auto border border-gray-200 rounded-lg shadow-sm max-h-[70vh]">
+      <table className="table-fixed min-w-full text-sm text-left">
+        <thead className="sticky top-0 bg-white shadow z-10 text-blue-800 uppercase text-xs">
           <tr>
-            <th style={{ width: "100px" }}>Sender</th>
-            <th>Timestamp</th>
-            <th>Conversation</th>
-            <th>Message</th>
+            <th className="px-4 py-2 w-32">Sender</th>
+            <th className="px-4 py-2 w-48">Timestamp</th>
+            <th className="px-4 py-2 w-64">Conversation</th>
+            <th className="px-4 py-2">Message</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-200">
+        <tbody className="divide-y">
           {messages.map((msg, idx) => (
-            <tr key={idx} className="hover:bg-blue-50">
-              <td className="px-4 py-2 font-medium text-gray-700 truncate max-w-[100px]">
+            <tr key={idx} className="hover:bg-amber-50 transition">
+              <td className="px-4 py-2 font-medium text-gray-700 truncate">
                 {msg.sender}
               </td>
-              <td className="px-4 py-2 text-gray-500">{msg.timestamp}</td>
-              <td className="px-4 py-2 text-gray-500">{msg.conversation}</td>
-              <td className="px-4 py-2 text-gray-700 truncate">
+              <td className="px-4 py-2 text-gray-500 whitespace-nowrap">
+                {msg.timestamp}
+              </td>
+              <td className="px-4 py-2 text-gray-500 truncate">
+                {msg.conversation}
+              </td>
+              <td className="px-4 py-2 text-gray-700 whitespace-normal">
                 {msg.content}
               </td>
             </tr>

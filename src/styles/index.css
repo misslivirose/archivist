@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import url("https://fonts.googleapis.com/css2?family=Merriweather&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap");
 
 @tailwind utilities;
 
@@ -26,7 +27,6 @@ body {
     bottom: 0;
     left: 48px;
     width: 2px;
-    background-color: #f06292;
     opacity: 0.4;
 }
 

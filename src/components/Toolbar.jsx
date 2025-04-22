@@ -8,16 +8,18 @@ export default function Toolbar({
     <div className="flex justify-between items-center flex-wrap gap-4">
       <button
         onClick={onFilePick}
-        className="px-5 py-2 font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition"
+        className="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white font-semibold rounded-full shadow hover:bg-blue-700 transition"
       >
-        💾 Select Facebook ZIP Archive
+        💾 Select Archive
       </button>
+
       <button
         onClick={onClearCache}
-        className="px-5 py-2 font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition"
+        className="inline-flex items-center gap-2 px-5 py-2 bg-red-600 text-white font-semibold rounded-full shadow hover:bg-red-700 transition"
       >
         🗑️ Clear Cache
       </button>
+
       <input
         type="text"
         placeholder="Search messages..."
