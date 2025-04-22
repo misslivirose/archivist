@@ -4,6 +4,13 @@ import { invoke } from "@tauri-apps/api/core";
 export function useMessages(generateNarrative) {
   const [messages, setMessages] = useState([]);
   const [summaries, setSummaries] = useState({});
+  const years = Array.from(
+    new Set(messages.map((m) => new Date(m.timestamp).getFullYear())),
+  ).sort();
+  const senders = Array.from(new Set(messages.map((m) => m.sender))).sort();
+  const conversations = Array.from(
+    new Set(messages.map((m) => m.conversation)),
+  ).sort();
 
   useEffect(() => {
     async function loadCachedMessages() {

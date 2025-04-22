@@ -3,6 +3,10 @@ export default function Toolbar({
   onClearCache,
   search,
   setSearch,
+  filters,
+  setFilters,
+  years,
+  senders,
 }) {
   return (
     <div className="flex justify-between items-center flex-wrap gap-4">
@@ -27,6 +31,37 @@ export default function Toolbar({
         onChange={(e) => setSearch(e.target.value)}
         className="flex-1 min-w-[250px] px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-300"
       />
+      <div className="flex gap-2 items-center">
+        <select
+          value={filters.year}
+          onChange={(e) =>
+            setFilters((prev) => ({ ...prev, year: e.target.value }))
+          }
+          className="px-3 py-2 border rounded text-sm"
+        >
+          <option value="">All Years</option>
+          {years.map((year) => (
+            <option key={year} value={year}>
+              {year}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={filters.sender}
+          onChange={(e) =>
+            setFilters((prev) => ({ ...prev, sender: e.target.value }))
+          }
+          className="px-3 py-2 border rounded text-sm"
+        >
+          <option value="">All Senders</option>
+          {senders.map((sender) => (
+            <option key={sender} value={sender}>
+              {sender}
+            </option>
+          ))}
+        </select>
+      </div>
     </div>
   );
 }

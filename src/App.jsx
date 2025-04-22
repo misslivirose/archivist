@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 import { useMessages } from "./hooks/messageManager";
@@ -20,8 +20,19 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTab, setActiveTab] = useState("messages");
+  const [filters, setFilters] = useState({ year: "", sender: "" });
 
   const { messages, setMessages, summaries } = useMessages(generateNarrative);
+
+  const years = useMemo(() => {
+    return Array.from(
+      new Set(messages.map((m) => new Date(m.timestamp).getFullYear())),
+    ).sort();
+  }, [messages]);
+
+  const senders = useMemo(() => {
+    return Array.from(new Set(messages.map((m) => m.sender))).sort();
+  }, [messages]);
 
   const handleFilePicker = async () => {
     try {
@@ -59,12 +70,22 @@ export default function App() {
     }
   };
 
-  const filtered = messages.filter(
-    (m) =>
-      m.content.toLowerCase().includes(search.toLowerCase()) ||
-      m.sender.toLowerCase().includes(search.toLowerCase()) ||
-      m.conversation.toLowerCase().includes(search.toLowerCase()),
-  );
+  const filtered = useMemo(() => {
+    return messages.filter((m) => {
+      const matchesSearch =
+        m.content.toLowerCase().includes(search.toLowerCase()) ||
+        m.sender.toLowerCase().includes(search.toLowerCase()) ||
+        m.conversation.toLowerCase().includes(search.toLowerCase());
+
+      const matchesYear = filters.year
+        ? new Date(m.timestamp).getFullYear().toString() === filters.year
+        : true;
+
+      const matchesSender = filters.sender ? m.sender === filters.sender : true;
+
+      return matchesSearch && matchesYear && matchesSender;
+    });
+  }, [messages, search, filters]);
 
   const paginated = filtered.slice(
     (currentPage - 1) * PAGE_SIZE,
@@ -82,6 +103,10 @@ export default function App() {
               onClearCache={handleClearCache}
               search={search}
               setSearch={setSearch}
+              filters={filters}
+              setFilters={setFilters}
+              years={years}
+              senders={senders}
             />
             {loading ? (
               <p className="text-blue-600 font-semibold">
