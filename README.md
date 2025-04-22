@@ -40,8 +40,9 @@ const response = await fetch("http://localhost:11434/api/generate", {
 
 Building Archivist:
 
-TODO: Write more specific steps that specifically includes how to do this from a fresh clone. You have to do the `npm install` stuff and frankly I'm not in the mood to do it from scratch right now.
-
+1. Install Rust
+2. Clone the GitHub repo
+3. Run `npm install`
 
 ```npm run tauri dev``` - Development build
 
