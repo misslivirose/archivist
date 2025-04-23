@@ -7,8 +7,8 @@ export default function Tabs({ activeTab, setActiveTab, tabs }) {
           onClick={() => setActiveTab(tab)}
           className={`pb-1 border-b-2 ${
             activeTab === tab
-              ? "border-amber-500 bg-amber-100 text-amber-700 shadow-inner"
-              : "border-transparent text-gray-500 hover:text-amber-600 hover:bg-amber-50"
+              ? "border-rose-500 bg-rose-100 text-rose-700 shadow-inner"
+              : "border-transparent text-gray-500 hover:text-rose-600 hover:bg-rose-50"
           } font-medium capitalize`}
         >
           {tab}

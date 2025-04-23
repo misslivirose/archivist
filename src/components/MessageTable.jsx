@@ -12,7 +12,7 @@ export default function MessageTable({ messages }) {
         </thead>
         <tbody className="divide-y divide-dashed divide-gray-300">
           {messages.map((msg, idx) => (
-            <tr key={idx} className="hover:bg-amber-50 transition">
+            <tr key={idx} className="hover:bg-rose-50 transition">
               <td className="px-4 py-2 font-medium text-gray-700 truncate">
                 {msg.sender}
               </td>

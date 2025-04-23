@@ -101,14 +101,13 @@ export default function App() {
 
   useEffect(() => {
     if (activeTab === "summary" && !summariesGenerated) {
-      console.log("⚡ Triggering summary generation...");
       generateSummaries();
       setSummariesGenerated(true);
     }
   }, [activeTab, summariesGenerated, generateSummaries]);
 
   return (
-    <div className="p-6 bg-gradient-to-br from-amber-100 to-yellow-50 min-h-screen text-stone-800">
+    <div className="p-6 bg-gradient-to-br from-rose-100 to-yellow-50 min-h-screen text-stone-800">
       <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-lg p-8 space-y-6">
         <Tabs tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />
         {activeTab === "messages" && (
