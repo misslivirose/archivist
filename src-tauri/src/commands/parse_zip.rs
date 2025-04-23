@@ -1,5 +1,5 @@
 use crate::models::{AppState, Message};
-use crate::utils::{extract_year, parse_inbox, save_config, AppConfig};
+use crate::utils::{parse_inbox, parse_timeline, save_config, AppConfig};
 use scraper::{Html, Selector};
 use sha2::{Digest, Sha256};
 use std::fs;
@@ -65,54 +65,7 @@ pub fn parse_zip(zip_path: String, state: tauri::State<AppState>) -> Result<Vec<
         .join("your_facebook_activity/posts/your_posts__check_ins__photos_and_videos_1.html");
     if timeline_path.exists() {
         println!("✅ Found timeline path");
-        for entry in walkdir::WalkDir::new(&timeline_path)
-            .into_iter()
-            .filter_map(|e| e.ok())
-        {
-            let path = entry.path();
-            if path.is_file() && path.extension().unwrap_or_default() == "html" {
-                let html = fs::read_to_string(path).map_err(|e| e.to_string())?;
-                let doc = Html::parse_document(&html);
-
-                let status_sel = Selector::parse("div._a6-g").unwrap();
-                let sender_sel = Selector::parse("div._a6-h").unwrap();
-                let content_sel = Selector::parse("div._2pin").unwrap();
-                let time_sel = Selector::parse("div._a72d").unwrap();
-
-                for block in doc.select(&status_sel) {
-                    let sender = block
-                        .select(&sender_sel)
-                        .next()
-                        .map(|e| e.text().collect::<String>())
-                        .unwrap_or_default();
-
-                    let content = block
-                        .select(&content_sel)
-                        .next()
-                        .map(|e| e.text().collect::<String>())
-                        .unwrap_or_default();
-
-                    let timestamp_raw = block
-                        .select(&time_sel)
-                        .next()
-                        .map(|e| e.text().collect::<String>())
-                        .unwrap_or_default();
-
-                    // Extract year from timestamp for "timeline_YYYY"
-                    let year = extract_year(&timestamp_raw).unwrap_or("unknown".to_string());
-                    let conv_name = format!("timeline_{}", year);
-
-                    if !content.trim().is_empty() {
-                        messages.push(Message {
-                            sender,
-                            timestamp: timestamp_raw,
-                            content,
-                            conversation: conv_name,
-                        });
-                    }
-                }
-            }
-        }
+        messages = parse_timeline(messages, &timeline_path)?;
     } else {
         println!("⚠️ Timeline path not found");
     }

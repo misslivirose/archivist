@@ -7,3 +7,4 @@ pub use config::save_config;
 pub use config::AppConfig;
 pub use extract_year::extract_year;
 pub use parse_html::parse_inbox;
+pub use parse_html::parse_timeline;
