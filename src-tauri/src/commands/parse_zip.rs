@@ -1,7 +1,5 @@
-use crate::commands::read_message_cache;
 use crate::models::{AppState, Message};
-use crate::utils::extract_year;
-use crate::utils::{save_config, AppConfig};
+use crate::utils::{extract_year, parse_inbox, save_config, AppConfig};
 use scraper::{Html, Selector};
 use sha2::{Digest, Sha256};
 use std::fs;
@@ -59,60 +57,7 @@ pub fn parse_zip(zip_path: String, state: tauri::State<AppState>) -> Result<Vec<
         return Err("⚠️ Expected inbox path does not exist".to_string());
     }
 
-    for entry in walkdir::WalkDir::new(inbox_path)
-        .into_iter()
-        .filter_map(|e| e.ok())
-    {
-        let path = entry.path();
-        if path.is_file()
-            && path
-                .file_name()
-                .unwrap()
-                .to_string_lossy()
-                .starts_with("message_")
-            && path.extension().unwrap_or_default() == "html"
-        {
-            let conv_name = path
-                .parent()
-                .and_then(|p| p.file_name())
-                .map(|n| n.to_string_lossy().to_string())
-                .unwrap_or("Unknown".to_string());
-            let html = fs::read_to_string(path).map_err(|e| e.to_string())?;
-            let doc = Html::parse_document(&html);
-
-            let block_sel = Selector::parse("div._a6-g").unwrap();
-            let sender_sel = Selector::parse("div._a6-h").unwrap();
-            let text_sel = Selector::parse("div._a6-p").unwrap();
-            let time_sel = Selector::parse("div._a72d").unwrap();
-
-            for block in doc.select(&block_sel) {
-                let sender = block
-                    .select(&sender_sel)
-                    .next()
-                    .map(|e| e.text().collect::<String>())
-                    .unwrap_or_default();
-                let content = block
-                    .select(&text_sel)
-                    .next()
-                    .map(|e| e.text().collect::<String>())
-                    .unwrap_or_default();
-                let timestamp_raw = block
-                    .select(&time_sel)
-                    .next()
-                    .map(|e| e.text().collect::<String>())
-                    .unwrap_or_default();
-
-                if !content.trim().is_empty() {
-                    messages.push(Message {
-                        sender,
-                        timestamp: timestamp_raw,
-                        content,
-                        conversation: conv_name.clone(),
-                    });
-                }
-            }
-        }
-    }
+    messages = parse_inbox(messages, &inbox_path)?;
 
     // Parse timeline posts
     let timeline_path = temp_dir
