@@ -5,10 +5,11 @@ mod commands;
 mod models;
 mod utils;
 
-use commands::{clear_cache, parse_zip, read_message_cache};
-use models::{AppState, Message};
+use commands::{clear_cache, parse_zip, read_connection_cache, read_message_cache};
+use models::{AppState, CachedData, Connection, Message};
 use utils::load_config;
 
+use itertools::Itertools;
 use sha2::{Digest, Sha256};
 use std::fs;
 use std::sync::Mutex;
@@ -22,12 +23,13 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             parse_zip,
             clear_cache,
-            read_message_cache
+            read_message_cache,
+            read_connection_cache,
         ])
         .setup(|app| {
             let use_cache = true;
-            let mut last_cache_path = None;
             let mut cached_messages = None;
+            let mut cached_connections = None;
 
             if let Some(config) = load_config() {
                 if let Some(zip_path) = config.last_zip_path {
@@ -42,12 +44,22 @@ fn main() {
 
                     if cache_path.exists() {
                         println!("📂 Found cache from config: {:?}", cache_path);
-                        last_cache_path = Some(cache_path.clone());
-
-                        cached_messages =
-                            fs::read_to_string(&cache_path).ok().and_then(|content| {
-                                serde_json::from_str::<Vec<Message>>(&content).ok()
-                            });
+                        if let Ok(content) = fs::read_to_string(&cache_path) {
+                            if let Ok(cached) = serde_json::from_str::<CachedData>(&content) {
+                                println!(
+                                    "✅ Loaded {} messages and {} connections from cache.",
+                                    cached.messages.len(),
+                                    cached.connections.len()
+                                );
+                                cached_messages = Some(cached.messages);
+                                cached_connections = Some(cached.connections);
+                            } else {
+                                println!(
+                                    "⚠️ Failed to parse combined cache file: {:?}",
+                                    cache_path
+                                );
+                            }
+                        }
                     }
                 }
             }
@@ -68,7 +80,7 @@ fn main() {
             };
             app.manage(AppState {
                 use_cache,
-                last_cache_path: Mutex::new(last_cache_path),
+                cached_connections: Mutex::new(cached_connections),
                 cached_messages: Mutex::new(cached_messages),
             });
             Ok(())

@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 import { useMessages } from "./hooks/messageManager";
+import { useConnections } from "./hooks/connectionManager";
 import { generateNarrative } from "./utils/messageUtils";
 import Tabs from "./components/Tabs";
 import Toolbar from "./components/Toolbar";
@@ -9,9 +10,10 @@ import MessageTable from "./components/MessageTable";
 import Pagination from "./components/Pagination";
 import Agent from "./components/Agent";
 import Summary from "./components/Summary";
+import Connections from "./components/Connections";
 import "./styles/index.css";
 
-const tabs = ["messages", "agent", "summary"];
+const tabs = ["messages", "agent", "summary", "connections"];
 
 export default function App() {
   const [zipPath, setZipPath] = useState("");
@@ -25,6 +27,8 @@ export default function App() {
 
   const { messages, setMessages, summaries, groupedByYear, generateSummaries } =
     useMessages(generateNarrative);
+
+  const { connections, setConnections } = useConnections();
 
   const years = useMemo(() => {
     return Array.from(
@@ -156,6 +160,7 @@ export default function App() {
         {activeTab === "summary" && (
           <Summary summaries={summaries} groupedByYear={groupedByYear} />
         )}
+        {activeTab === "connections" && <Connections connections />}
       </div>
     </div>
   );

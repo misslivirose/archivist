@@ -10,11 +10,6 @@ pub fn parse_inbox(mut messages: Vec<Message>, inbox_path: &Path) -> Result<Vec<
         .filter_map(|e| e.ok())
     {
         let path = entry.path();
-        println!("Path: {}", path.display());
-        println!(
-            "Attempting to parse inbox messages - path: {}",
-            path.display()
-        );
         if path.is_file()
             && path
                 .file_name()

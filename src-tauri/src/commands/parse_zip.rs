@@ -1,30 +1,25 @@
-use crate::models::{AppState, Message};
-use crate::utils::{parse_inbox, parse_timeline, save_config, AppConfig};
-use scraper::{Html, Selector};
+use crate::models::{AppState, CachedData, Connection, FacebookData, Message};
+use crate::utils::{parse_connections, parse_inbox, parse_timeline, save_config, AppConfig};
 use sha2::{Digest, Sha256};
 use std::fs;
 use std::fs::File;
 use zip::ZipArchive;
 
 #[tauri::command]
-pub fn parse_zip(zip_path: String, state: tauri::State<AppState>) -> Result<Vec<Message>, String> {
+pub fn parse_zip(zip_path: String, state: tauri::State<AppState>) -> Result<FacebookData, String> {
     let use_cache = state.use_cache;
     println!("📦 parse_zip called with use_cache = {}", use_cache);
     let mut hasher = Sha256::new();
     hasher.update(zip_path.as_bytes());
     let hash = format!("{:x}", hasher.finalize());
-    let cache_path = dirs::cache_dir()
-        .ok_or("Failed to get cache directory")?
-        .join("archivist")
-        .join(format!("{}.json", hash));
 
-    if cache_path.exists() {
-        let cached_data = fs::read_to_string(&cache_path).map_err(|e| e.to_string())?;
-        let messages: Vec<Message> =
-            serde_json::from_str(&cached_data).map_err(|e| e.to_string())?;
-        println!("✅ Loaded {} messages from cache", messages.len());
-        return Ok(messages);
-    }
+    // if cache_path.exists() {
+    //     let cached_data = fs::read_to_string(&cache_path).map_err(|e| e.to_string())?;
+    //     let messages: Vec<Message> =
+    //         serde_json::from_str(&cached_data).map_err(|e| e.to_string())?;
+    //     println!("✅ Loaded {} messages from cache", messages.len());
+    //     return Ok(messages);
+    // }
 
     let zip_file = File::open(&zip_path).map_err(|e| format!("⚠️ Failed to open zip: {}", e))?;
     let mut archive =
@@ -71,18 +66,44 @@ pub fn parse_zip(zip_path: String, state: tauri::State<AppState>) -> Result<Vec<
     }
 
     println!("✅ Total messages parsed: {}", messages.len());
+    let mut connections: Vec<Connection> = vec![];
+
+    let connections_path = temp_dir
+        .path()
+        .join("connections/friends/your_friends.html");
+    if connections_path.exists() {
+        println!("✅ Found connections path");
+        connections = parse_connections(connections, &connections_path)?;
+        println!("Added {} connections to friend list", connections.len());
+    }
 
     if use_cache {
+        let cache_path = dirs::cache_dir()
+            .ok_or("Failed to get cache directory")?
+            .join("archivist")
+            .join(format!("{}.json", hash));
+
         if let Some(parent) = cache_path.parent() {
             fs::create_dir_all(parent).ok();
         }
-        let serialized = serde_json::to_string(&messages).map_err(|e| e.to_string())?;
+
+        let cache = CachedData {
+            messages: messages.clone(),
+            connections: connections.clone(),
+        };
+
+        let serialized = serde_json::to_string_pretty(&cache).map_err(|e| e.to_string())?;
         fs::write(&cache_path, serialized).ok();
+
         save_config(&AppConfig {
             last_zip_path: Some(zip_path.clone()),
         });
-        println!("💾 Cached messages to {:?}", cache_path);
+
+        println!("💾 Cached messages + connections to {:?}", cache_path);
     }
 
-    Ok(messages)
+    Ok(FacebookData {
+        messages,
+        connections,
+    })
 }
