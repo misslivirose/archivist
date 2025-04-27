@@ -72,7 +72,7 @@ const Connections = () => {
         {years.map((year) => (
           <div
             key={year}
-            className="flex-shrink-0 w-screen h-screen snap-center flex flex-col items-center justify-center p-8"
+            className="flex-shrink-0 w-screen snap-center flex flex-col items-center justify-center p-8"
           >
             <h2 className="text-5xl font-bold mb-10 text-gray-700">{year}</h2>
             <div className="flex flex-col items-center space-y-6 overflow-y-auto w-2/3 max-h-[60vh]">
