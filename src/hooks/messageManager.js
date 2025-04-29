@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 
 export function useMessages(generateNarrative) {
@@ -9,13 +9,14 @@ export function useMessages(generateNarrative) {
     async function loadCachedMessages() {
       try {
         const result = await invoke("read_message_cache");
-        if (result) {
+        if (result && Array.isArray(result) && result.length > 0) {
           setMessages(result);
         }
       } catch (error) {
         console.error("Failed to load cached messages:", error);
       }
     }
+
     loadCachedMessages();
   }, []);
 
@@ -41,7 +42,7 @@ export function useMessages(generateNarrative) {
     const sortedYears = Object.keys(groups).sort();
 
     for (const year of sortedYears) {
-      console.log("Generating summary for year" + year);
+      console.log("Generating summary for year " + year);
       const summary = await generateNarrative(year, groups[year]);
       setSummaries((prev) => {
         const updated = { ...prev, [year]: summary };

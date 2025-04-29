@@ -12,15 +12,6 @@ pub fn parse_zip(zip_path: String, state: tauri::State<AppState>) -> Result<Face
     let mut hasher = Sha256::new();
     hasher.update(zip_path.as_bytes());
     let hash = format!("{:x}", hasher.finalize());
-
-    // if cache_path.exists() {
-    //     let cached_data = fs::read_to_string(&cache_path).map_err(|e| e.to_string())?;
-    //     let messages: Vec<Message> =
-    //         serde_json::from_str(&cached_data).map_err(|e| e.to_string())?;
-    //     println!("✅ Loaded {} messages from cache", messages.len());
-    //     return Ok(messages);
-    // }
-
     let zip_file = File::open(&zip_path).map_err(|e| format!("⚠️ Failed to open zip: {}", e))?;
     let mut archive =
         ZipArchive::new(zip_file).map_err(|e| format!("⚠️ Failed to read zip: {}", e))?;

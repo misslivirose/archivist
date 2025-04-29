@@ -6,10 +6,9 @@ mod models;
 mod utils;
 
 use commands::{clear_cache, parse_zip, read_connection_cache, read_message_cache};
-use models::{AppState, CachedData, Connection, Message};
+use models::{AppState, CachedData};
 use utils::load_config;
 
-use itertools::Itertools;
 use sha2::{Digest, Sha256};
 use std::fs;
 use std::sync::Mutex;

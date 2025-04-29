@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { open } from "@tauri-apps/plugin-dialog";
+import { open, confirm } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 import { useMessages } from "./hooks/messageManager";
 import { useConnections } from "./hooks/connectionManager";
@@ -40,7 +40,7 @@ export default function App() {
     return Array.from(new Set(messages.map((m) => m.sender))).sort();
   }, [messages]);
 
-  const handleFilePicker = async () => {
+  async function handleFilePicker() {
     try {
       const selected = await open({
         multiple: false,
@@ -55,19 +55,19 @@ export default function App() {
         setZipPath(selected);
         setLoading(true);
         const result = await invoke("parse_zip", { zipPath: selected });
-        setMessages(result);
+        setMessages(result.messages);
         setCurrentPage(1);
-        generateSummaries();
       }
     } catch (error) {
       console.error("Error processing ZIP:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   const handleClearCache = async () => {
-    if (confirm("Are you sure you want to clear the cached data?")) {
+    const result = confirm("Are you sure you want to clear the cached data?");
+    if (result) {
       try {
         await invoke("clear_cache");
         alert("Cache cleared.");
