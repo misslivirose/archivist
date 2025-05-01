@@ -17,12 +17,7 @@ export default function Agent({ messages, search, currentPage, PAGE_SIZE }) {
           m.conversation.toLowerCase().includes(search.toLowerCase()),
       );
 
-      const paginated = visibleMessages.slice(
-        (currentPage - 1) * PAGE_SIZE,
-        currentPage * PAGE_SIZE,
-      );
-
-      const context = paginated
+      const context = visibleMessages
         .map((m) => `[${m.timestamp}] ${m.sender}: ${m.content}`)
         .join("\n");
 
@@ -35,6 +30,8 @@ export default function Agent({ messages, search, currentPage, PAGE_SIZE }) {
           stream: false,
         }),
       });
+
+      console.log("Query: " + `${context}\n\n${agentInput}`);
 
       const data = await response.json();
       setAgentResponse(data.response);
